@@ -2,6 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\OperationTypeEnum;
+use App\Models\Operation;
+use App\Models\PaidBill;
+use App\Models\Partner;
+use App\Models\ReceivedAmount;
 use App\Models\User;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -14,6 +19,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+
         $this->call(
             [
                 UserSeeder::class,
