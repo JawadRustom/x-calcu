@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Enums\OperationTypeEnum;
+use App\Traits\HasOperations;
+use App\Traits\HasStatistics;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,21 +13,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Operation extends Model
 {
     /** @use HasFactory<\Database\Factories\OperationFactory> */
-    use HasFactory;
+    use HasFactory, HasOperations, HasStatistics;
 
     protected $fillable = [
         'partner_id',
-        'customer_name',
-        'operation_type',
-        'invoice_number',
-        'invoice_value',
-        'remaining_of_bill',
-        'percentage_of_bill',
-        'amount_due',
-        'remaining_amount',
-        'invoice_date',
-        'alert_date',
-        'comments',
+        'customer_name',//اسم العميل
+        'operation_type',//نوع العملية
+        'invoice_number',//رقم الفاتورة
+        'invoice_value',//قيمة الفاتورة
+        'percentage_of_bill',//نسبتي من المبلغ
+        'invoice_date',//تاريخ الفاتورة
+        'alert_date',//تاريخ التنبيه
+        'comments',//الملاحظات
     ];
     protected $casts = [
         'operation_type' => OperationTypeEnum::class,
@@ -33,6 +32,28 @@ class Operation extends Model
         'alert_date' => 'datetime',
     ];
 
+    /**
+     * The accessors to append to the model's array form.
+     *
+     * @var array
+     */
+    protected $appends = [
+        //statistics
+        'total_invoice_value', // مجاميع قيم الفواتير
+        'total_paid_bills_total_value', // مجاميع مجموع المبالغ المسددة
+        'total_remaining_of_bill_value', // مجاميع البواقي من الفاتورة
+        'total_amount_due_value', // مجاميع المبالغ المستحقة
+        'total_received_amounts_total_value', // مجاميع المبالغ المقبوضة
+        'total_remaining_amount_value', // مجاميع المبالغ المتبقي
+        'total_percentage_value', // مجاميع قيم النسب
+        //operations
+        'percentage_value',// قيمة النسبة المئوية
+        'remaining_of_bill_value',// الباقي من الفاتورة
+        'amount_due_value',// المبلغ المستحق
+        'remaining_amount_value',// المبلغ المتبقي
+        'paid_bills_total',// المبالغ المسددة
+        'received_amounts_total',// المبالغ المقبوضة
+    ];
     public function partner(): BelongsTo
     {
         return $this->belongsTo(\App\Models\Partner::class);
@@ -47,87 +68,4 @@ class Operation extends Model
     {
         return $this->hasMany(\App\Models\ReceivedAmount::class);
     }
-
-    /**
-     * Get the calculated percentage value based on invoice_value and percentage_of_bill.
-     *
-     * @return float
-     */
-    protected function getPercentageValueAttribute(): float
-    {
-        if (empty($this->paid_bills_total) || empty($this->percentage_of_bill)) {
-            return 0.0;
-        }
-
-        return ($this->paid_bills_total * $this->percentage_of_bill) / 100;
-    }
-
-    // الباقي من الفاتورة = قيمة الفاتورة - المبالغ المسددة
-
-    protected function getRemainingOfBillValueAttribute(): float
-    {
-        if (empty($this->invoice_value) || empty($this->paid_bills_total)) {
-            return 0.0;
-        }
-
-        return $this->invoice_value - $this->paid_bills_total;
-    }
-
-    // المبلغ المستحق = المبالغ المسددة - النسبة
-
-    protected function getAmountDueValueAttribute(): float
-    {
-        if (empty($this->paid_bills_total) || empty($this->percentage_value)) {
-            return 0.0;
-        }
-
-        return $this->paid_bills_total - $this->percentage_value;
-    }
-
-    // المبلغ المتبقي = المبلغ المستحق - المبالغ المقبوضة
-
-
-    protected function getRemainingAmountValueAttribute(): float
-    {
-        if (empty($this->amount_due_value) || empty($this->received_amounts_total)) {
-            return 0.0;
-        }
-
-        return $this->amount_due_value - $this->received_amounts_total;
-    }
-
-
-    /**
-     * Get the sum of all related paid bills' invoice values.
-     *
-     * @return float
-     */
-    protected function getPaidBillsTotalAttribute(): float
-    {
-        return (float)$this->paidBills()->sum('invoice_value');
-    }
-
-    /**
-     * Get the sum of all related received amounts' invoice values.
-     *
-     * @return float
-     */
-    protected function getReceivedAmountsTotalAttribute(): float
-    {
-        return (float)$this->receivedAmounts()->sum('invoice_value');
-    }
-
-    /**
-     * The accessors to append to the model's array form.
-     *
-     * @var array
-     */
-    protected $appends = [
-        'percentage_value',// قيمة النسبة المئوية
-        'remaining_of_bill_value',// الباقي من الفاتورة
-        'amount_due_value',// المبلغ المستحق
-        'remaining_amount_value',// المبلغ المتبقي
-        'paid_bills_total',// المبالغ المسددة
-        'received_amounts_total',// المبالغ المقبوضة
-    ];
 }
