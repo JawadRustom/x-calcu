@@ -2,6 +2,8 @@
 
 namespace App\Traits;
 
+use App\Enums\OperationTypeEnum;
+use App\Models\Operation;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
 trait HasStatistics
@@ -17,8 +19,14 @@ trait HasStatistics
     protected function getTotalInvoiceValueAttribute(): array
     {
         return [
-            'لشريك واحد' => (float)$this->where('partner_id', $this->partner_id)->sum('invoice_value'),
-            'لحميع الشراكات' => (float)$this->sum('invoice_value'),
+            'input_operation' => [
+                'لشريك واحد' => (float)$this->where('operation_type', OperationTypeEnum::INPUT)->where('partner_id', $this->partner_id)->sum('invoice_value'),
+                'لحميع الشراكات' => (float)$this->where('operation_type', OperationTypeEnum::INPUT)->sum('invoice_value'),
+            ],
+            'output_operation' => [
+                'لشريك واحد' => (float)$this->where('operation_type', OperationTypeEnum::OUTPUT)->where('partner_id', $this->partner_id)->sum('invoice_value'),
+                'لحميع الشراكات' => (float)$this->where('operation_type', OperationTypeEnum::OUTPUT)->sum('invoice_value'),
+            ],
         ];
     }
 
@@ -30,96 +38,204 @@ trait HasStatistics
     protected function getTotalPaidBillsTotalValueAttribute(): array
     {
         return [
-            // Calculate for single partner if partner_id is set
-            'لشريك واحد' => $this->partner_id
-                ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+            'input_operation' => [
+                // Calculate for single partner if partner_id is set
+                'لشريك واحد' => $this->partner_id
+                    ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->where('operation_type', OperationTypeEnum::INPUT)
+                        ->get()
+                        ->sum('paid_bills_total')
+                    : 0.0,
+                // Calculate for all partners
+                'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->where('operation_type', OperationTypeEnum::INPUT)
                     ->get()
-                    ->sum('paid_bills_total')
-                : 0.0,
-            // Calculate for all partners
-            'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
-                ->get()
-                ->sum('paid_bills_total'),
+                    ->sum('paid_bills_total'),
+            ],
+            'output_operation' => [
+                // Calculate for single partner if partner_id is set
+                'لشريك واحد' => $this->partner_id
+                    ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->where('operation_type', OperationTypeEnum::OUTPUT)
+                        ->get()
+                        ->sum('paid_bills_total')
+                    : 0.0,
+                // Calculate for all partners
+                'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->where('operation_type', OperationTypeEnum::OUTPUT)
+                    ->get()
+                    ->sum('paid_bills_total'),
+            ],
         ];
     }
 
     protected function getTotalRemainingOfBillValueAttribute(): array
     {
         return [
-            // Calculate for single partner if partner_id is set
-            'لشريك واحد' => $this->partner_id
-                ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+            'input_operation' => [
+                // Calculate for single partner if partner_id is set
+                'لشريك واحد' => $this->partner_id
+                    ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->where('operation_type', OperationTypeEnum::INPUT)
+                        ->get()
+                        ->sum('remaining_of_bill_value')
+                    : 0.0,
+                // Calculate for all partners
+                'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->where('operation_type', OperationTypeEnum::INPUT)
                     ->get()
-                    ->sum('remaining_of_bill_value')
-                : 0.0,
-            // Calculate for all partners
-            'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
-                ->get()
-                ->sum('remaining_of_bill_value'),
+                    ->sum('remaining_of_bill_value'),
+            ],
+            'output_operation' => [
+                // Calculate for single partner if partner_id is set
+                'لشريك واحد' => $this->partner_id
+                    ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->where('operation_type', OperationTypeEnum::OUTPUT)
+                        ->get()
+                        ->sum('remaining_of_bill_value')
+                    : 0.0,
+                // Calculate for all partners
+                'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->where('operation_type', OperationTypeEnum::OUTPUT)
+                    ->get()
+                    ->sum('remaining_of_bill_value'),
+            ],
         ];
     }
 
     protected function getTotalAmountDueValueAttribute(): array
     {
         return [
-            // Calculate for single partner if partner_id is set
-            'لشريك واحد' => $this->partner_id
-                ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+            'input_operation' => [
+                // Calculate for single partner if partner_id is set
+                'لشريك واحد' => $this->partner_id
+                    ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->where('operation_type', OperationTypeEnum::INPUT)
+                        ->get()
+                        ->sum('amount_due_value')
+                    : 0.0,
+                // Calculate for all partners
+                'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->where('operation_type', OperationTypeEnum::INPUT)
                     ->get()
-                    ->sum('amount_due_value')
-                : 0.0,
-            // Calculate for all partners
-            'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
-                ->get()
-                ->sum('amount_due_value'),
+                    ->sum('amount_due_value'),
+            ],
+            'output_operation' => [
+                // Calculate for single partner if partner_id is set
+                'لشريك واحد' => $this->partner_id
+                    ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->where('operation_type', OperationTypeEnum::OUTPUT)
+                        ->get()
+                        ->sum('amount_due_value')
+                    : 0.0,
+                // Calculate for all partners
+                'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->where('operation_type', OperationTypeEnum::OUTPUT)
+                    ->get()
+                    ->sum('amount_due_value'),
+            ],
         ];
     }
 
     protected function getTotalReceivedAmountsTotalValueAttribute(): array
     {
         return [
-            // Calculate for single partner if partner_id is set
-            'لشريك واحد' => $this->partner_id
-                ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+            'input_operation' => [
+                // Calculate for single partner if partner_id is set
+                'لشريك واحد' => $this->partner_id
+                    ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->where('operation_type', OperationTypeEnum::INPUT)
+                        ->get()
+                        ->sum('received_amounts_total')
+                    : 0.0,
+                // Calculate for all partners
+                'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->where('operation_type', OperationTypeEnum::INPUT)
                     ->get()
-                    ->sum('received_amounts_total')
-                : 0.0,
-            // Calculate for all partners
-            'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
-                ->get()
-                ->sum('received_amounts_total'),
+                    ->sum('received_amounts_total'),
+            ],
+            'output_operation' => [
+                // Calculate for single partner if partner_id is set
+                'لشريك واحد' => $this->partner_id
+                    ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->where('operation_type', OperationTypeEnum::OUTPUT)
+                        ->get()
+                        ->sum('received_amounts_total')
+                    : 0.0,
+                // Calculate for all partners
+                'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->where('operation_type', OperationTypeEnum::OUTPUT)
+                    ->get()
+                    ->sum('received_amounts_total'),
+            ],
         ];
     }
 
     protected function getTotalRemainingAmountValueAttribute(): array
     {
         return [
-            // Calculate for single partner if partner_id is set
-            'لشريك واحد' => $this->partner_id
-                ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+            'input_operation' => [
+                // Calculate for single partner if partner_id is set
+                'لشريك واحد' => $this->partner_id
+                    ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->where('operation_type', OperationTypeEnum::INPUT)
+                        ->get()
+                        ->sum('remaining_amount_value')
+                    : 0.0,
+                // Calculate for all partners
+                'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->where('operation_type', OperationTypeEnum::INPUT)
                     ->get()
-                    ->sum('remaining_amount_value')
-                : 0.0,
-            // Calculate for all partners
-            'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
-                ->get()
-                ->sum('remaining_amount_value'),
+                    ->sum('remaining_amount_value'),
+            ],
+            'output_operation' => [
+                // Calculate for single partner if partner_id is set
+                'لشريك واحد' => $this->partner_id
+                    ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->where('operation_type', OperationTypeEnum::OUTPUT)
+                        ->get()
+                        ->sum('remaining_amount_value')
+                    : 0.0,
+                // Calculate for all partners
+                'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->where('operation_type', OperationTypeEnum::OUTPUT)
+                    ->get()
+                    ->sum('remaining_amount_value'),
+            ],
         ];
     }
 
     protected function getTotalPercentageValueAttribute(): array
     {
         return [
-            // Calculate for single partner if partner_id is set
-            'لشريك واحد' => $this->partner_id
-                ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+            'input_operation' => [
+                // Calculate for single partner if partner_id is set
+                'لشريك واحد' => $this->partner_id
+                    ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->where('operation_type', OperationTypeEnum::INPUT)
+                        ->get()
+                        ->sum('percentage_value')
+                    : 0.0,
+                // Calculate for all partners
+                'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->where('operation_type', OperationTypeEnum::INPUT)
                     ->get()
-                    ->sum('percentage_value')
-                : 0.0,
-            // Calculate for all partners
-            'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
-                ->get()
-                ->sum('percentage_value'),
+                    ->sum('percentage_value'),
+            ],
+            'output_operation' => [
+                // Calculate for single partner if partner_id is set
+                'لشريك واحد' => $this->partner_id
+                    ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->where('operation_type', OperationTypeEnum::OUTPUT)
+                        ->get()
+                        ->sum('percentage_value')
+                    : 0.0,
+                // Calculate for all partners
+                'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->where('operation_type', OperationTypeEnum::OUTPUT)
+                    ->get()
+                    ->sum('percentage_value'),
+            ],
         ];
     }
 
