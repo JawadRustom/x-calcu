@@ -22,7 +22,7 @@ class ApiKeySeeder extends Seeder
 //            ]);
             ApiKey::create([
                 'name' => 'key1',
-                'key'  => 'zHu3uAJYNbBUgdwaVecMbDcUKoJmLDu77JwXixMI6Bq0Y5QEkOxm2sryI81eRfiF' // Auto-generates a key if not provided
+                'key'  => 'AIOEnOSLmuellmwKzSPfG794LCfT4cskhTgi9KS1RhsmkkCGwMD6FtRI1eXUKCS9' // Auto-generates a key if not provided
             ]);
         }
     }
