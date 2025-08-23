@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\StatisticHelper;
+use App\Http\Requests\PartnerDetailsRequest;
 use App\Http\Requests\PartnerPage\PartnerRequest;
 use App\Http\Requests\PartnerPage\StorePartnerRequest;
 use App\Http\Requests\PartnerPage\UpdatePartnerRequest;
+use App\Http\Resources\HomepageResource\OperationResource;
 use App\Http\Resources\PartnerPage\PartnerResource;
 use App\Models\Operation;
 use App\Models\Partner;
@@ -35,7 +38,7 @@ class PartnerPageController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StorePartnerRequest $request) : \Illuminate\Http\JsonResponse
+    public function store(StorePartnerRequest $request): \Illuminate\Http\JsonResponse
     {
         Partner::create([
             'name' => $request['name'],
@@ -56,9 +59,24 @@ class PartnerPageController extends Controller
     }
 
     /**
+     * Display the specified resource.
+     */
+    public function partnerDetails(string $partnerId, PartnerDetailsRequest $request): \Illuminate\Http\JsonResponse
+    {
+        $statistic = StatisticHelper::getStatistics($partnerId, $request->operationType);
+        $partner = Partner::find($partnerId);
+        $data = [
+            'partner' => new PartnerResource($partner),
+            'statistic' => $statistic,
+            'operations' => OperationResource::collection($partner->operations)
+        ];
+        return response()->json($data);
+    }
+
+    /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePartnerRequest $request,string $partnerId) : PartnerResource
+    public function update(UpdatePartnerRequest $request, string $partnerId): PartnerResource
     {
         $partner = Partner::find($partnerId);
         $partner->update([

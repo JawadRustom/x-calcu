@@ -24,7 +24,7 @@ class UpdateOperationRequest extends FormRequest
         return [
             'partner_id' => 'required|exists:partners,id',
             'customer_name' => 'required|string|max:255',
-            'operationType' => 'required|in:Input,Output',
+            'operationType' => 'required|in:input,output',
             'invoice_number' => 'required|string|max:255',
             'invoice_value' => 'required|numeric|min:0',
             'percentage_of_bill' => 'required|numeric|min:0|max:100',

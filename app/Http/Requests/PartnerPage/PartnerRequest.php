@@ -22,7 +22,7 @@ class PartnerRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'operationType' => 'required|string'
+            'operationType' => 'required|string|in:input,output'
         ];
     }
 }
