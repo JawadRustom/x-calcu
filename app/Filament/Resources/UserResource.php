@@ -18,7 +18,7 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-s-user';
 
     public static function form(Form $form): Form
     {
@@ -60,9 +60,12 @@ class UserResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->hidden(fn($record) => $record->id === 1),
+                Tables\Actions\DeleteAction::make()
+                    ->hidden(fn($record) => $record->id === 1),
             ])
+            ->recordUrl(fn($record) => $record->id === 1 ? null : static::getUrl('edit', ["record" => $record]))
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
