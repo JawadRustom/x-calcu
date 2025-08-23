@@ -8,32 +8,6 @@ use Illuminate\Http\Request;
 
 class HomepageController extends Controller
 {
-    public function getOperations(Request $request, $perPage = 10): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
-    {
-        $request->validate([
-            'operationType' => 'required',
-            'orderBy' => 'required',
-            'start_date' => 'nullable|date_format:Y-m-d',
-            'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date'
-        ]);
-
-        $query = Operation::whereHas('partner', static fn($q) => $q->whereHas('user', static fn($q) => $q->where('user_id', auth()->user()->id)
-        )
-        )->where('operation_type', $request->operationType);
-
-        if ($request->has(['start_date', 'end_date'])) {
-            $query->whereBetween('invoice_date', [
-                $request->start_date . ' 00:00:00',
-                $request->end_date . ' 23:59:59'
-            ]);
-        }
-
-        $operations = $query->orderBy('invoice_date', $request->orderBy)
-            ->paginate($perPage);
-
-        return OperationResource::collection($operations);
-    }
-
     /**
      * Search operations across multiple columns
      *

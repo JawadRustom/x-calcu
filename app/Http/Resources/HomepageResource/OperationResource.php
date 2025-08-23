@@ -17,11 +17,35 @@ class OperationResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'operation_type' => $this->operation_type->value,
-            'comments' => $this->comments,
-            'amount_due_value' => $this->amount_due_value,
-            'partner' => new PartnerResource($this->partner),
-            'invoice_date' => Carbon::parse($this->invoice_date)->format('Y-m-d H:i:s'),
+            'اسم الشريك' => $this->partner->name,
+            'اسم العميل' => $this->customer_name,
+            'نوع العملية' => $this->operation_type->value,
+            'رقم الفاتورة' => $this->invoice_number,
+            'قيمة الفاتورة' => $this->invoice_value,
+            'سدد من الفاتورة' => [
+                'قيمة السداد الكلية' => $this->paid_bills_total,
+                'القيم التفصيلية' => $this->paidBills->map(fn($paidBills) => [
+                    'invoice_value' => $paidBills->invoice_value,
+                    'invoice_date' => $paidBills->invoice_date->format('Y-m-d H:i:s')
+                ])->toArray(),
+            ],
+            'باقي من الفاتورة' => $this->remaining_of_bill_value,
+            'نسبتي من المبلغ' => [
+                'النسبة المئوية' => $this->percentage_of_bill . '%',
+                'قيمة النسبة المئوية' => $this->percentage_value,
+            ],
+            'المبلغ المستحق' => $this->amount_due_value,
+            'المبلغ المقبوض' => [
+                'قيمة المقبوضات الكلية' => $this->received_amounts_total,
+                'القيم التفصيلية' => $this->receivedAmounts->map(fn($receivedAmounts) => [
+                    'invoice_value' => $receivedAmounts->invoice_value,
+                    'invoice_date' => $receivedAmounts->invoice_date->format('Y-m-d H:i:s')
+                ])->toArray(),
+            ],
+            'المبلغ المتبقي' => $this->remaining_amount_value,
+            'التاريخ' => $this->invoice_date->format('Y-m-d H:i:s'),
+            'تاريخ التنبيه' => $this->alert_date->format('Y-m-d H:i:s'),
+            'الملاحظات' => $this->comments,
         ];
     }
 }
