@@ -4,18 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Http\Resources\HomepageResource\OperationResource;
 use App\Models\Operation;
+use App\Traits\ResultTrait;
 use Illuminate\Http\Request;
 
 class HomepageController extends Controller
 {
+    use ResultTrait;
     /**
      * Search operations across multiple columns
      *
      * @param Request $request
      * @param int $perPage
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function searchOperations(Request $request, $perPage = 10): \Illuminate\Http\Resources\Json\AnonymousResourceCollection
+    public function searchOperations(Request $request, $perPage = 10): \Illuminate\Http\JsonResponse
     {
         $request->validate([
             'search' => 'required|string|min:1',
@@ -87,7 +89,6 @@ class HomepageController extends Controller
         $paginated = new \Illuminate\Pagination\LengthAwarePaginator($results, $operations->count(), $perPage, $page, [
             'path' => \Illuminate\Pagination\LengthAwarePaginator::resolveCurrentPath(),
         ]);
-
-        return OperationResource::collection($paginated);
+        return $this->successResponse(OperationResource::collection($paginated), "Search operations successfully", 200);
     }
 }

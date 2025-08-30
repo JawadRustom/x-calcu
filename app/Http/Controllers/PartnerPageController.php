@@ -11,12 +11,15 @@ use App\Http\Resources\HomepageResource\OperationResource;
 use App\Http\Resources\PartnerPage\PartnerResource;
 use App\Models\Operation;
 use App\Models\Partner;
+use App\Traits\ResultTrait;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
 class PartnerPageController extends Controller
 {
-    public function getPartners(PartnerRequest $request, int $perPage = 10): AnonymousResourceCollection
+    use ResultTrait;
+
+    public function getPartners(PartnerRequest $request, int $perPage = 10): \Illuminate\Http\JsonResponse
     {
         // Get distinct partner IDs first
         $partnerIds = Operation::select('partner_id')
@@ -31,7 +34,7 @@ class PartnerPageController extends Controller
         // Get the partners with pagination
         $partners = \App\Models\Partner::whereIn('id', $partnerIds)
             ->paginate($perPage);
-        return PartnerResource::collection($partners);
+        return $this->successResponse(PartnerResource::collection($partners), 'Get partners successfully', 200);
     }
 
 
@@ -40,22 +43,22 @@ class PartnerPageController extends Controller
      */
     public function store(StorePartnerRequest $request): \Illuminate\Http\JsonResponse
     {
-        Partner::create([
+        $partner = Partner::create([
             'name' => $request['name'],
             'phone' => $request['phone'],
             'email' => $request['email'],
             'user_id' => auth()->id(),
         ]);
-        return response()->json(['message' => 'Partner created successfully']);
+        return $this->successResponse(new PartnerResource($partner), 'Partner created successfully', 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $partnerId): PartnerResource
+    public function show(string $partnerId): \Illuminate\Http\JsonResponse
     {
         $partner = Partner::find($partnerId);
-        return new PartnerResource($partner);
+        return $this->successResponse(new PartnerResource($partner), 'Show partner successfully', 200);
     }
 
     /**
@@ -70,13 +73,13 @@ class PartnerPageController extends Controller
             'statistic' => $statistic,
             'operations' => OperationResource::collection($partner->operations)
         ];
-        return response()->json($data);
+        return $this->successResponse($data, 'Get partner details successfully', 200);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePartnerRequest $request, string $partnerId): PartnerResource
+    public function update(UpdatePartnerRequest $request, string $partnerId): \Illuminate\Http\JsonResponse
     {
         $partner = Partner::find($partnerId);
         $partner->update([
@@ -85,7 +88,7 @@ class PartnerPageController extends Controller
             'email' => $request['email'],
         ]);
         $partner->refresh();
-        return new PartnerResource($partner);
+        return $this->successResponse(new PartnerResource($partner), 'Partner updated successfully', 200);
     }
 
     /**
