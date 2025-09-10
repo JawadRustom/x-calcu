@@ -17,8 +17,9 @@ class OperationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(IndexOperationRequest $request, $perPage = 10): \Illuminate\Http\JsonResponse
+    public function index(IndexOperationRequest $request): \Illuminate\Http\JsonResponse
     {
+        $perPage = $request->perPage ?? 10;
         $searchTerm = $request->search;
 
         // Base query with user access control

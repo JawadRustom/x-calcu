@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 class HomepageController extends Controller
 {
     use ResultTrait;
+
     /**
      * Search operations across multiple columns
      *
@@ -17,11 +18,12 @@ class HomepageController extends Controller
      * @param int $perPage
      * @return \Illuminate\Http\JsonResponse
      */
-    public function searchOperations(Request $request, $perPage = 10): \Illuminate\Http\JsonResponse
+    public function searchOperations(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->validate([
             'search' => 'required|string|min:1',
         ]);
+        $perPage = $request->perPage ?? 10;
 
         $searchTerm = $request->search;
 
@@ -49,7 +51,7 @@ class HomepageController extends Controller
         $baseIds = $baseQuery->pluck('id');
 
         // Now get all operations and filter by the calculated attributes
-        $operations = $query->get()->filter(function($operation) use ($searchTerm, $baseIds) {
+        $operations = $query->get()->filter(function ($operation) use ($searchTerm, $baseIds) {
             // Check if it's in the base results
             if ($baseIds->contains($operation->id)) {
                 return true;

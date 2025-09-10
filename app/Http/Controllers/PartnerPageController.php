@@ -19,8 +19,9 @@ class PartnerPageController extends Controller
 {
     use ResultTrait;
 
-    public function getPartners(PartnerRequest $request, int $perPage = 10): \Illuminate\Http\JsonResponse
+    public function getPartners(PartnerRequest $request): \Illuminate\Http\JsonResponse
     {
+        $perPage = $request->perPage ?? 10;
         // Get distinct partner IDs first
         $partnerIds = Operation::select('partner_id')
             ->whereHas('partner.user', function ($q) {
@@ -34,6 +35,12 @@ class PartnerPageController extends Controller
         // Get the partners with pagination
         $partners = \App\Models\Partner::whereIn('id', $partnerIds)
             ->paginate($perPage);
+        return $this->successResponse(PartnerResource::collection($partners), 'Get partners successfully', 200);
+    }
+
+    public function getSelectPartners(): \Illuminate\Http\JsonResponse
+    {
+        $partners = \App\Models\Partner::get();
         return $this->successResponse(PartnerResource::collection($partners), 'Get partners successfully', 200);
     }
 
@@ -75,6 +82,15 @@ class PartnerPageController extends Controller
         ];
         return $this->successResponse($data, 'Get partner details successfully', 200);
     }
+
+    public function partnerOperations(string $partnerId, PartnerDetailsRequest $request): \Illuminate\Http\JsonResponse
+    {
+        $perPage = $request->perPage ?? 10;
+        $partner = Partner::find($partnerId);
+        $data = OperationResource::collection($partner->operations()->where('operation_type', $request->operationType)->paginate($perPage));
+        return $this->successResponse($data, 'Get partner details successfully', 200);
+    }
+
 
     /**
      * Update the specified resource in storage.
