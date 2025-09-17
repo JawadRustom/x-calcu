@@ -23,6 +23,10 @@ class PartnerDetailsRequest extends FormRequest
     {
         return [
             'operationType' => 'required|in:input,output',
+            'orderBy' => 'required',
+            'start_date' => 'nullable|date_format:Y-m-d',
+            'end_date' => 'nullable|date_format:Y-m-d|after_or_equal:start_date',
+            'search' => 'nullable|string|max:255',
         ];
     }
 }

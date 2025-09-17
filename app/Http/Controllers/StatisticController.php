@@ -15,7 +15,11 @@ class StatisticController extends Controller
 
     public function getStatistic(StatisticRequest $request): JsonResponse
     {
-        $statistic = StatisticHelper::getStatistics($request['parentId'], $request['operationType']);
+        try {
+            $statistic = StatisticHelper::getStatistics($request['parentId'], $request['operationType']);
+        }catch (\Exception $exception){
+            return $this->errorResponse($exception->getMessage(), null, 400);
+        }
         return $this->successResponse($statistic, 'Statistic retrieved successfully', 200);
     }
 }

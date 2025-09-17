@@ -27,10 +27,11 @@ class StatisticHelper
     public static function getStatistics(?int $parentId, string $operationType): array
     {
         self::validateOperationType($operationType);
+        self::validateParentId($parentId);
         $operation = self::getOperation($parentId);
         $partnerType = $parentId ? 'single' : 'all';
         $operationTypeKey = "{$operationType}_operation";
-        
+
         return self::generateStatisticsArray($operation, $operationTypeKey, $partnerType);
     }
 
@@ -41,31 +42,57 @@ class StatisticHelper
         }
     }
 
-    private static function getOperation(?int $parentId): Operation
+    private static function validateParentId(?int $parentId): void
+    {
+        // Skip validation if parentId is null (for all partners case)
+        if ($parentId === null) {
+            return;
+        }
+
+        // Get all partner IDs for the authenticated user
+        $partnerIds = Auth::user()->partners()->pluck('id')->toArray();
+
+        // If user has no partners, throw an exception
+        if (empty($partnerIds)) {
+            throw new \Exception('You don\'t have any partners');
+        }
+
+        // Check if the provided parentId belongs to user's partners
+        if (!in_array($parentId, $partnerIds)) {
+            throw new \Exception('You don\'t have access to this partner');
+        }
+    }
+
+    private static function getOperation(?int $parentId)
     {
         $query = Operation::whereHas('partner.user', function ($query) {
             $query->where('user_id', Auth::id());
         });
 
         if ($parentId) {
-            return $query->where('partner_id', $parentId)->firstOrFail();
+            return $query->where('partner_id', $parentId)->firstOrNew(['partner_id' => $parentId]);
         }
 
-        return $query->where('partner_id', Auth::user()->partners()->firstOrFail()->id)
-            ->firstOrFail();
+        $partner = Auth::user()->partners()->first();
+        if (!$partner) {
+            return new Operation();
+        }
+
+        return $query->where('partner_id', $partner->id)->firstOrNew(['partner_id' => $partner->id]);
     }
 
     private static function generateStatisticsArray(
         Operation $operation,
-        string $operationTypeKey,
-        string $partnerType
-    ): array {
+        string    $operationTypeKey,
+        string    $partnerType
+    ): array
+    {
         $statistics = [];
-        
+
         foreach (self::STATISTIC_KEYS as $key => $label) {
             $statistics[$label] = $operation->$key[$operationTypeKey][self::PARTNER_TYPES[$partnerType]];
         }
-        
+
         return $statistics;
     }
 }

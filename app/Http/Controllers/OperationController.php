@@ -8,6 +8,7 @@ use App\Http\Resources\HomepageResource\OperationResource;
 use App\Models\Operation;
 use App\Traits\ResultTrait;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class OperationController extends Controller
@@ -93,12 +94,34 @@ class OperationController extends Controller
         return $this->successResponse(OperationResource::collection($operations), "Get operations successfully", 200);
     }
 
+    private static function validateParentId(?int $parentId): void
+    {
+        // Skip validation if parentId is null (for all partners case)
+        if ($parentId === null) {
+            return;
+        }
+
+        // Get all partner IDs for the authenticated user
+        $partnerIds = Auth::user()->partners()->pluck('id')->toArray();
+
+        // If user has no partners, throw an exception
+        if (empty($partnerIds)) {
+            throw new \Exception('You don\'t have any partners');
+        }
+
+        // Check if the provided parentId belongs to user's partners
+        if (!in_array($parentId, $partnerIds)) {
+            throw new \Exception('You don\'t have access to this partner');
+        }
+    }
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreOperationRequest $request)
     {
         try {
+            self::validateParentId($request->partner_id);
             // Start a database transaction
             DB::beginTransaction();
 
@@ -145,7 +168,7 @@ class OperationController extends Controller
         } catch (\Exception $e) {
             // Rollback the transaction in case of error
             DB::rollBack();
-            return $this->errorResponse('Failed to create operation', $e->getMessage(), $e->getCode());
+            return $this->errorResponse('Failed to create operation' . $e->getMessage(), null, 500);
         }
     }
 
@@ -163,8 +186,13 @@ class OperationController extends Controller
      */
     public function update(StoreOperationRequest $request, string $operationId)
     {
-        $operation = Operation::with(['paidBills', 'receivedAmounts'])->find($operationId);
         try {
+            $operation = Operation::with(['paidBills', 'receivedAmounts'])->find($operationId);
+            if (!$operation) {
+                return $this->errorResponse('Operation not found', null, 404);
+            }
+            self::validateParentId($operation->partner_id);
+            self::validateParentId($request->partner_id);
             // Start a database transaction
             DB::beginTransaction();
 
@@ -221,10 +249,10 @@ class OperationController extends Controller
             // Return the updated operation with related data
             return $this->successResponse(new OperationResource($operation->load(['paidBills', 'receivedAmounts'])), "Operation updated successfully", 200);
 
-        } catch (\Exception $e) {
+        } catch (\Exception $exception) {
             // Rollback the transaction in case of error
             DB::rollBack();
-            $this->errorResponse('Failed to update operation', $e->getMessage(), $e->getCode());
+            return $this->errorResponse('Failed to update operation' . $exception->getMessage(), null, 500);
         }
     }
 
@@ -233,8 +261,13 @@ class OperationController extends Controller
      */
     public function destroy(string $operationId)
     {
-        $operation = Operation::with(['paidBills', 'receivedAmounts'])->find($operationId);
-        $operation->delete();
-        return response()->noContent();
+        try {
+            $operation = Operation::with(['paidBills', 'receivedAmounts'])->find($operationId);
+            self::validateParentId($operation->partner_id);
+            $operation->delete();
+            return response()->noContent();
+        }catch (\Exception $exception){
+            return $this->errorResponse('Failed to delete operation' . $exception->getMessage(), null, 500);
+        }
     }
 }

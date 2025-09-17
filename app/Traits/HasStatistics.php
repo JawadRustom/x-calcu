@@ -21,11 +21,15 @@ trait HasStatistics
         return [
             'input_operation' => [
                 'لشريك واحد' => (float)$this->where('operation_type', OperationTypeEnum::INPUT)->where('partner_id', $this->partner_id)->sum('invoice_value'),
-                'لحميع الشراكات' => (float)$this->where('operation_type', OperationTypeEnum::INPUT)->sum('invoice_value'),
+                'لحميع الشراكات' => (float)$this->where('operation_type', OperationTypeEnum::INPUT)->whereHas('partner.user', function ($query) {
+                    $query->where('user_id', auth()->id());
+                })->sum('invoice_value'),
             ],
             'output_operation' => [
                 'لشريك واحد' => (float)$this->where('operation_type', OperationTypeEnum::OUTPUT)->where('partner_id', $this->partner_id)->sum('invoice_value'),
-                'لحميع الشراكات' => (float)$this->where('operation_type', OperationTypeEnum::OUTPUT)->sum('invoice_value'),
+                'لحميع الشراكات' => (float)$this->where('operation_type', OperationTypeEnum::OUTPUT)->whereHas('partner.user', function ($query) {
+                    $query->where('user_id', auth()->id());
+                })->sum('invoice_value'),
             ],
         ];
     }
@@ -48,6 +52,9 @@ trait HasStatistics
                     : 0.0,
                 // Calculate for all partners
                 'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->whereHas('partner.user', function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
                     ->where('operation_type', OperationTypeEnum::INPUT)
                     ->get()
                     ->sum('paid_bills_total'),
@@ -62,6 +69,9 @@ trait HasStatistics
                     : 0.0,
                 // Calculate for all partners
                 'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->whereHas('partner.user', function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
                     ->where('operation_type', OperationTypeEnum::OUTPUT)
                     ->get()
                     ->sum('paid_bills_total'),
@@ -82,6 +92,9 @@ trait HasStatistics
                     : 0.0,
                 // Calculate for all partners
                 'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->whereHas('partner.user', function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
                     ->where('operation_type', OperationTypeEnum::INPUT)
                     ->get()
                     ->sum('remaining_of_bill_value'),
@@ -96,6 +109,9 @@ trait HasStatistics
                     : 0.0,
                 // Calculate for all partners
                 'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->whereHas('partner.user', function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
                     ->where('operation_type', OperationTypeEnum::OUTPUT)
                     ->get()
                     ->sum('remaining_of_bill_value'),
@@ -116,6 +132,9 @@ trait HasStatistics
                     : 0.0,
                 // Calculate for all partners
                 'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->whereHas('partner.user', function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
                     ->where('operation_type', OperationTypeEnum::INPUT)
                     ->get()
                     ->sum('amount_due_value'),
@@ -130,6 +149,9 @@ trait HasStatistics
                     : 0.0,
                 // Calculate for all partners
                 'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->whereHas('partner.user', function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
                     ->where('operation_type', OperationTypeEnum::OUTPUT)
                     ->get()
                     ->sum('amount_due_value'),
@@ -150,6 +172,9 @@ trait HasStatistics
                     : 0.0,
                 // Calculate for all partners
                 'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->whereHas('partner.user', function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
                     ->where('operation_type', OperationTypeEnum::INPUT)
                     ->get()
                     ->sum('received_amounts_total'),
@@ -164,6 +189,9 @@ trait HasStatistics
                     : 0.0,
                 // Calculate for all partners
                 'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->whereHas('partner.user', function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
                     ->where('operation_type', OperationTypeEnum::OUTPUT)
                     ->get()
                     ->sum('received_amounts_total'),
@@ -184,6 +212,9 @@ trait HasStatistics
                     : 0.0,
                 // Calculate for all partners
                 'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->whereHas('partner.user', function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
                     ->where('operation_type', OperationTypeEnum::INPUT)
                     ->get()
                     ->sum('remaining_amount_value'),
@@ -192,6 +223,9 @@ trait HasStatistics
                 // Calculate for single partner if partner_id is set
                 'لشريك واحد' => $this->partner_id
                     ? (float)\App\Models\Operation::where('partner_id', $this->partner_id)
+                        ->whereHas('partner.user', function ($query) {
+                            $query->where('user_id', auth()->id());
+                        })
                         ->where('operation_type', OperationTypeEnum::OUTPUT)
                         ->get()
                         ->sum('remaining_amount_value')
@@ -218,6 +252,9 @@ trait HasStatistics
                     : 0.0,
                 // Calculate for all partners
                 'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->whereHas('partner.user', function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
                     ->where('operation_type', OperationTypeEnum::INPUT)
                     ->get()
                     ->sum('percentage_value'),
@@ -232,6 +269,9 @@ trait HasStatistics
                     : 0.0,
                 // Calculate for all partners
                 'لحميع الشراكات' => (float)\App\Models\Operation::with(['paidBills'])
+                    ->whereHas('partner.user', function ($query) {
+                        $query->where('user_id', auth()->id());
+                    })
                     ->where('operation_type', OperationTypeEnum::OUTPUT)
                     ->get()
                     ->sum('percentage_value'),

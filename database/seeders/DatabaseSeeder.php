@@ -24,10 +24,10 @@ class DatabaseSeeder extends Seeder
             [
                 ApiKeySeeder::class,
                 UserSeeder::class,
-                PartnerSeeder::class,
-                OperationSeeder::class,
-                PaidBillSeeder::class,
-                ReceivedAmountSeeder::class
+//                PartnerSeeder::class,
+//                OperationSeeder::class,
+//                PaidBillSeeder::class,
+//                ReceivedAmountSeeder::class
             ]
         );
     }
