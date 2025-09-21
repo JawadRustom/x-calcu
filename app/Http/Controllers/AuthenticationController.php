@@ -35,10 +35,18 @@ class AuthenticationController extends Controller
     {
         $user = User::where('email', $request->email)->first();
         if (!$user || !Hash::check($request->password, $user->password)) {
+            if (!$user) {
+                return response()->json([
+                    'message' => 'Invalid email address.',
+                    'errors' => [
+                        'email' => ['We couldn’t find an account with that email address.'],
+                    ]
+                ], Response::HTTP_UNPROCESSABLE_ENTITY);
+            }
             return response()->json([
-                'message' => 'The selected email is invalid.',
+                'message' => 'Invalid password.',
                 'errors' => [
-                    'email' => ['password wrong.']
+                    'password' => ['The password you entered is not correct. Please try again.']
                 ]
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }

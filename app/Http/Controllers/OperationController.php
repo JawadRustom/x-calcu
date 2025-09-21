@@ -70,7 +70,7 @@ class OperationController extends Controller
                 // Try to parse as date and search in date fields
                 try {
                     $date = \Carbon\Carbon::parse($searchTerm);
-                    if ($date) {
+                    if ($date && $date->isValid()) {
                         $dateString = $date->format('Y-m-d');
                         $q->orWhereDate('invoice_date', $dateString)
                             ->orWhereDate('alert_date', $dateString)

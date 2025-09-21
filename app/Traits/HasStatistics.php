@@ -15,6 +15,7 @@ trait HasStatistics
     //'total_received_amounts_total_value', // مجاميع المبالغ المقبوضة
     //'total_remaining_amount_value', // مجاميع المبالغ المتبقي
     //'total_percentage_value', // مجاميع قيم النسب
+
     // مجاميع قيم الفواتير للشريك
     protected function getTotalInvoiceValueAttribute(): array
     {
@@ -33,7 +34,6 @@ trait HasStatistics
             ],
         ];
     }
-
     /**
      * Get the total paid bills amount for both a single partner and all partners
      *
